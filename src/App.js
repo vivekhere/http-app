@@ -29,17 +29,18 @@ class App extends Component {
     await axios.put(apiEndpoint + "/" + post.id, post);
 
     // to update
-    // clone the posts array
     const posts = [...this.state.posts];
-    // get the index of post in the posts array
     const index = posts.indexOf(post);
-    // go to that index and create a new object and spread post argument
     posts[index] = { ...post };
     this.setState({ posts });
   };
 
-  handleDelete = (post) => {
-    console.log("Delete", post);
+  handleDelete = async (post) => {
+    await axios.delete(apiEndpoint + "/" + post.id); // delete post from server
+
+    // remove post from table
+    const posts = this.state.posts.filter((p) => p.id !== post.id);
+    this.setState({ posts });
   };
 
   render() {
@@ -86,14 +87,3 @@ class App extends Component {
 }
 
 export default App;
-
-// axios.put() -> to update all properties.
-// first arg - url endpoint, second arg data to be sent to the server.
-// When using the put method we should send the entire post object.
-// example: axios.put(apiEndpoint + '/' + post.id, post)
-
-// axios.patch() -> to update one or more properties.
-// first arg - url endpoint, second arg data to be sent to the server.
-// When using the patch method we don't have the sent the entire post object.
-// We can send only one or more properties that we want to update.
-// example: axios.put(apiEndpoint + '/' + post.id, { title: post.title })
