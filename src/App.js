@@ -1,24 +1,27 @@
 import React, { Component } from "react";
-import axios from "axios"; // import axios
+import axios from "axios";
 import "./App.css";
+
+const apiEndpoint = "http://jsonplaceholder.typicode.com/posts";
 
 class App extends Component {
   state = {
     posts: [],
   };
 
-  // the right place to call the server and get some data is in the
-  // componentDidMount() lifecycle hook
   async componentDidMount() {
-    // pending > resolved (success) OR rejected (failure )
-    const { data: posts } = await axios.get(
-      "http://jsonplaceholder.typicode.com/posts"
-    ); // sends an http request and gets some data
-    this.setState({ posts }); // update the state
+    // pending > resolved (success) OR rejected (failure)
+    const { data: posts } = await axios.get(apiEndpoint);
+    this.setState({ posts });
   }
 
-  handleAdd = () => {
-    console.log("Add");
+  handleAdd = async () => {
+    const obj = { title: "a", body: "b" };
+    const { data: post } = await axios.post(apiEndpoint, obj);
+
+    // add the newly created post to posts
+    const posts = [post, ...this.state.posts];
+    this.setState({ posts });
   };
 
   handleUpdate = (post) => {
@@ -74,9 +77,6 @@ class App extends Component {
 
 export default App;
 
-// axios.get(url)
-// This method returns a promise.
-// A promise is an object that holds the result of an asynchronous operation.
-// An asynchronous operation is an operation that is going to complete in the future.
-// We can await the promise and get the actual result (response object).
-// Whenever we use await in a function we need to add "async" keyword.
+// axios.post() -> to create data
+// first argument is the url endpoint and second argument is the obj that we
+// want to pass to the server.
