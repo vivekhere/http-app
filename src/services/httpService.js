@@ -1,4 +1,5 @@
 import axios from "axios";
+import Raven from "raven-js";
 import { toast } from "react-toastify";
 
 axios.interceptors.response.use(null, (error) => {
@@ -7,7 +8,10 @@ axios.interceptors.response.use(null, (error) => {
     error.response.status >= 400 &&
     error.response.status < 500;
 
-  if (!expectedError) toast("An unexpected error occurred.");
+  if (!expectedError) {
+    Raven.captureException(error);
+    toast("An unexpected error occurred.");
+  }
 
   // to pass control to our catch block return a rejected promise
   return Promise.reject(error);
