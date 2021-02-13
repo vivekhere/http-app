@@ -43,9 +43,20 @@ class App extends Component {
     this.setState({ posts });
 
     try {
-      await axios.delete(apiEndpoint + "/" + post.id); // delete post from server
+      await axios.delete("s" + apiEndpoint + "/" + post.id); // delete post from server
     } catch (ex) {
-      alert("Something failed while deleting a post!");
+      if (ex.response && ex.response.status === 404)
+        // expected
+        alert("This post has already been deleted.");
+      else {
+        // unexpected
+        // Log the error (for now just log it in the console)
+        console.log("Logging the error", ex);
+        alert("An unexpected error occurred.");
+      }
+
+      // Whether we have an expected or unexpected we should revert the UI to
+      // it's previous state.
       this.setState({ posts: originalPosts });
     }
   };
@@ -95,24 +106,26 @@ class App extends Component {
 
 export default App;
 
-// Optimistic vs Pessimistic updates
+// Expected vs UnExpected Errors
 
-// Pessimistic update
-// We have implemented all the 'CRUD' operations there is a small issue in our
-// previous implementation. Note that when we click on the delete button it takes
-// about a second or half a second until the post is removed from the table.
-// We have the same issue when adding a post or updating a post. There is a delay
-// until we see the result.
-// The reason is our previous implementation we are calling the server first and
-// then updating the view or the UI.
-// With this implementation when an error occurs while calling the server the
-// rest of the function will not be executed. This is what we call a pessimistic
-// update. So, we are not sure if a call to the server is going to succeed or fail.
+// Expected - errors that our api endpoints predict and return.
+// example - 404: not found, 400: bad request (invalid data)
+// All these error are in the 400 range. In http protocol these are referred as
+// CLIENT ERRORS. Errors that happen because client did something wrong.
+// - Display a specific message to the user.
 
-// Pessimistic update
-// We can assume most of the time the call to the server succeeds. So, instead of
-// calling the server first which is going to take some time we gonna go ahead
-// and update the UI and then call the server.
-// If this call fails revert the UI back to the previous state. In React this is
-// easy because we never update the state directly so we can always have a
-// reference to the previous state.
+// Unexpected errors - these errors should not happen under normal circumstances.
+// example - network down, server down, db down, bug
+// - Log them: so in future we can look at our log and find the errors that should
+// not have happened.
+// - Display a generic and friendly error message to the user.
+// example - An unexpected error occurred.
+
+// How can we identify that the exception (ex) we get in the catch block is
+// expected or unexpected error ?
+// The expection (ex) object has 2 properties - request and response.
+// The ex.response is set if we successfully get a response from the server.
+// If the network is down or the server crashes we won't get a response so this
+// property will be null.
+// The ex.request will be set if we can successfully submit a request to the server.
+// Otherwise it will be null.
