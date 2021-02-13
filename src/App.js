@@ -1,8 +1,7 @@
 import React, { Component } from "react";
 import http from "./services/httpService";
+import config from "./config.json";
 import "./App.css";
-
-const apiEndpoint = "http://jsonplaceholder.typicode.com/posts";
 
 class App extends Component {
   state = {
@@ -11,13 +10,13 @@ class App extends Component {
 
   async componentDidMount() {
     // pending > resolved (success) OR rejected (failure)
-    const { data: posts } = await http.get(apiEndpoint);
+    const { data: posts } = await http.get(config.apiEndpoint);
     this.setState({ posts });
   }
 
   handleAdd = async () => {
     const obj = { title: "a", body: "b" };
-    const { data: post } = await http.post(apiEndpoint, obj);
+    const { data: post } = await http.post(config.apiEndpoint, obj);
 
     // add the newly created post to posts
     const posts = [post, ...this.state.posts];
@@ -26,7 +25,7 @@ class App extends Component {
 
   handleUpdate = async (post) => {
     post.title = "UPDATED";
-    await http.put(apiEndpoint + "/" + post.id, post);
+    await http.put(config.apiEndpoint + "/" + post.id, post);
 
     // to update
     const posts = [...this.state.posts];
@@ -43,7 +42,7 @@ class App extends Component {
     this.setState({ posts });
 
     try {
-      await http.delete(apiEndpoint + "/" + post.id); // delete post from server
+      await http.delete(config.apiEndpoint + "/" + post.id); // delete post from server
     } catch (ex) {
       if (ex.response && ex.response.status === 404)
         alert("This post has already been deleted.");
