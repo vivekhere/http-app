@@ -2,6 +2,26 @@ import React, { Component } from "react";
 import axios from "axios";
 import "./App.css";
 
+axios.interceptors.response.use(null, (error) => {
+  // console.log("INTERCEPTOR CALLED");
+
+  const expectedError =
+    error.response &&
+    error.response.status >= 400 &&
+    error.response.status < 500;
+
+  if (!expectedError) {
+    console.log("Logging the error", error);
+    alert("An unexpected error occurred.");
+  }
+
+  // to pass control to our catch block return a rejected promise
+  return Promise.reject(error);
+});
+// With this implementation whenever we have a response with an error this
+// function will be called first and then the control will be passed to our
+// catch block.
+
 const apiEndpoint = "http://jsonplaceholder.typicode.com/posts";
 
 class App extends Component {
@@ -45,18 +65,11 @@ class App extends Component {
     try {
       await axios.delete("s" + apiEndpoint + "/" + post.id); // delete post from server
     } catch (ex) {
-      if (ex.response && ex.response.status === 404)
-        // expected
-        alert("This post has already been deleted.");
-      else {
-        // unexpected
-        // Log the error (for now just log it in the console)
-        console.log("Logging the error", ex);
-        alert("An unexpected error occurred.");
-      }
+      // console.log("HANDLE DELETE CATCH BLOCK");
 
-      // Whether we have an expected or unexpected we should revert the UI to
-      // it's previous state.
+      if (ex.response && ex.response.status === 404)
+        alert("This post has already been deleted.");
+
       this.setState({ posts: originalPosts });
     }
   };
@@ -105,27 +118,3 @@ class App extends Component {
 }
 
 export default App;
-
-// Expected vs UnExpected Errors
-
-// Expected - errors that our api endpoints predict and return.
-// example - 404: not found, 400: bad request (invalid data)
-// All these error are in the 400 range. In http protocol these are referred as
-// CLIENT ERRORS. Errors that happen because client did something wrong.
-// - Display a specific message to the user.
-
-// Unexpected errors - these errors should not happen under normal circumstances.
-// example - network down, server down, db down, bug
-// - Log them: so in future we can look at our log and find the errors that should
-// not have happened.
-// - Display a generic and friendly error message to the user.
-// example - An unexpected error occurred.
-
-// How can we identify that the exception (ex) we get in the catch block is
-// expected or unexpected error ?
-// The expection (ex) object has 2 properties - request and response.
-// The ex.response is set if we successfully get a response from the server.
-// If the network is down or the server crashes we won't get a response so this
-// property will be null.
-// The ex.request will be set if we can successfully submit a request to the server.
-// Otherwise it will be null.
